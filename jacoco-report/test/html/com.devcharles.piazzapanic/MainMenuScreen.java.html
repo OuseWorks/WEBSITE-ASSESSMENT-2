@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MainMenuScreen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.devcharles.piazzapanic</a> &gt; <span class="el_source">MainMenuScreen.java</span></div><h1>MainMenuScreen.java</h1><pre class="source lang-java linenums">package com.devcharles.piazzapanic;
+
+import java.io.File;
+
+import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.devcharles.piazzapanic.scene2d.Slideshow;
+import com.devcharles.piazzapanic.utility.Difficulty;
+
+/**
+ * Main menu of the game, transitions the player to the Tutorial
+ * {@link Slideshow} on button press
+ */
+public class MainMenuScreen extends ApplicationAdapter implements Screen {
+
+    final PiazzaPanic game;
+    OrthographicCamera camera;
+    private Stage stage;
+    private Skin skin;
+    private Batch batch;
+    private Sprite sprite;
+    private BitmapFont gamesFont;
+    private BitmapFont subtitleFont;
+    private Label title;
+    private Label subtitle;
+
+<span class="nc" id="L43">    public MainMenuScreen(final PiazzaPanic game) {</span>
+
+<span class="nc" id="L45">        this.game = game;</span>
+<span class="nc" id="L46">        camera = new OrthographicCamera();</span>
+<span class="nc" id="L47">        camera.setToOrtho(false, 1280, 720);</span>
+<span class="nc" id="L48">        batch = new SpriteBatch();</span>
+
+<span class="nc" id="L50">        sprite = new Sprite(new Texture(Gdx.files.internal(&quot;mainMenuImage.png&quot;)));</span>
+<span class="nc" id="L51">        sprite.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());</span>
+
+<span class="nc" id="L53">        skin = new Skin(Gdx.files.internal(&quot;craftacular/skin/craftacular-ui.json&quot;));</span>
+<span class="nc" id="L54">        stage = new Stage(new ScreenViewport());</span>
+
+<span class="nc" id="L56">        Label.LabelStyle menuLabelStyle = new Label.LabelStyle();</span>
+<span class="nc" id="L57">        Label.LabelStyle subtitleLabelStyle = new Label.LabelStyle();</span>
+<span class="nc" id="L58">        gamesFont = new BitmapFont(Gdx.files.internal(&quot;craftacular/raw/font-title-export.fnt&quot;));</span>
+<span class="nc" id="L59">        subtitleFont = new BitmapFont(Gdx.files.internal(&quot;craftacular/raw/font-export.fnt&quot;));</span>
+<span class="nc" id="L60">        subtitleFont.getData().setScale(2,2);</span>
+<span class="nc" id="L61">        menuLabelStyle.font = gamesFont;</span>
+<span class="nc" id="L62">        subtitleLabelStyle.font=subtitleFont;</span>
+
+<span class="nc" id="L64">        title = new Label(&quot;Piazza Panic&quot;, menuLabelStyle);</span>
+<span class="nc" id="L65">        subtitle = new Label(&quot;Select Gamemode&quot;, subtitleLabelStyle);</span>
+<span class="nc" id="L66">        Table root = new Table();</span>
+<span class="nc" id="L67">        root.setFillParent(true);</span>
+<span class="nc" id="L68">        stage.addActor(root);</span>
+<span class="nc" id="L69">        root.add(title).expandX().padBottom(120);</span>
+<span class="nc" id="L70">        root.row();</span>
+<span class="nc" id="L71">        root.add(subtitle).expandX().padBottom(50);</span>
+<span class="nc" id="L72">        root.row();</span>
+<span class="nc" id="L73">        TextButton startScenarioButton = new TextButton(&quot;Scenario&quot;, skin);</span>
+<span class="nc" id="L74">        TextButton startEndlessButton = new TextButton(&quot;Endless&quot;, skin);</span>
+<span class="nc" id="L75">        TextButton tutorialButton = new TextButton(&quot;Tutorial&quot;, skin);</span>
+<span class="nc" id="L76">        TextButton loadGameButton = new TextButton(&quot;Load game&quot;, skin);</span>
+<span class="nc" id="L77">        loadGameButton.setDisabled(true);</span>
+
+<span class="nc" id="L79">        root.add(startScenarioButton);</span>
+<span class="nc" id="L80">        root.row();</span>
+<span class="nc" id="L81">        root.add(startEndlessButton);</span>
+<span class="nc" id="L82">        root.row();</span>
+<span class="nc" id="L83">        root.add(tutorialButton);</span>
+<span class="nc" id="L84">        root.row();</span>
+<span class="nc" id="L85">        root.add(loadGameButton).padTop(50);</span>
+
+        // Checks if button is clicked and if clicked goes onto the tutorial
+<span class="nc" id="L88">        startScenarioButton.addListener(new ClickListener() {</span>
+            public void clicked(InputEvent event, float x, float y) {
+<span class="nc" id="L90">                game.setScreen(new ScenarioMenuScreen(game));</span>
+<span class="nc" id="L91">                dispose();</span>
+<span class="nc" id="L92">            }</span>
+        });
+
+<span class="nc" id="L95">        startEndlessButton.addListener(new ClickListener() {</span>
+            public void clicked(InputEvent event, float x, float y) {
+<span class="nc" id="L97">                game.setScreen(new EndlessMenuScreen(game));</span>
+<span class="nc" id="L98">                dispose();</span>
+<span class="nc" id="L99">            }</span>
+        });
+
+<span class="nc" id="L102">        tutorialButton.addListener(new ClickListener() {</span>
+            public void clicked(InputEvent event, float x, float y) {
+<span class="nc" id="L104">                game.setScreen(new Slideshow(game,Slideshow.Type.tutorial,new MainMenuScreen(game)));</span>
+<span class="nc" id="L105">                dispose();</span>
+<span class="nc" id="L106">            }</span>
+        });
+
+        // Enable 'load game' button if a save file is present
+<span class="nc" id="L110">        File f = new File(&quot;./save.csv&quot;);</span>
+<span class="nc bnc" id="L111" title="All 4 branches missed.">        if(f.exists() &amp;&amp; !f.isDirectory()) { </span>
+<span class="nc" id="L112">            loadGameButton.setDisabled(false);</span>
+
+<span class="nc" id="L114">            loadGameButton.addListener(new ClickListener() {</span>
+                public void clicked(InputEvent event, float x, float y) {
+<span class="nc" id="L116">                    game.setScreen(new GameScreen(game, 999, Difficulty.ENDLESS_EASY, true));</span>
+<span class="nc" id="L117">                    dispose();</span>
+<span class="nc" id="L118">                }</span>
+            });
+        }
+
+<span class="nc" id="L122">    }</span>
+
+    @Override
+    public void show() {
+<span class="nc" id="L126">        Gdx.input.setInputProcessor(stage);</span>
+<span class="nc" id="L127">    }</span>
+
+    @Override
+    public void render(float delta) {
+<span class="nc" id="L131">        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);</span>
+        // draws everything (dont change this order unless you know what youre doing)
+<span class="nc" id="L133">        batch.begin();</span>
+<span class="nc" id="L134">        sprite.draw(batch);</span>
+<span class="nc" id="L135">        batch.end();</span>
+<span class="nc" id="L136">        stage.act();</span>
+<span class="nc" id="L137">        stage.draw();</span>
+<span class="nc" id="L138">    }</span>
+
+    @Override
+    public void resize(int width, int height) {
+<span class="nc" id="L142">        stage.getViewport().update(width, height, true);</span>
+<span class="nc" id="L143">    }</span>
+
+    @Override
+    public void hide() {
+
+<span class="nc" id="L148">    }</span>
+
+    public void dispose() {
+<span class="nc" id="L151">        skin.dispose();</span>
+<span class="nc" id="L152">        stage.dispose();</span>
+<span class="nc" id="L153">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

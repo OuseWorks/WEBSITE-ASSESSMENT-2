@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Difficulty.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.devcharles.piazzapanic.utility</a> &gt; <span class="el_source">Difficulty.java</span></div><h1>Difficulty.java</h1><pre class="source lang-java linenums">package com.devcharles.piazzapanic.utility;
+
+<span class="fc" id="L3">public enum Difficulty {</span>
+<span class="fc" id="L4">    SCENARIO(&quot;Scenario&quot;,30000),</span>
+<span class="fc" id="L5">    ENDLESS_EASY(&quot;Endless - Easy&quot;,120000),</span>
+<span class="fc" id="L6">    ENDLESS_NORMAL(&quot;Endless - Normal&quot;,60000),</span>
+<span class="fc" id="L7">    ENDLESS_HARD(&quot;Endless - Hard&quot;,30000);</span>
+
+    private String displayName;
+    private int spawnFrequency;
+<span class="fc" id="L11">    Difficulty(String displayName, int spawnFrequency){</span>
+<span class="fc" id="L12">        this.displayName=displayName;</span>
+<span class="fc" id="L13">        this.spawnFrequency=spawnFrequency;</span>
+<span class="fc" id="L14">    }</span>
+    public String getDisplayName(){
+<span class="nc" id="L16">        return this.displayName;</span>
+    }
+<span class="fc" id="L18">    public int getSpawnFrequency(){ return this.spawnFrequency;}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FoodComponent.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.devcharles.piazzapanic.components</a> &gt; <span class="el_source">FoodComponent.java</span></div><h1>FoodComponent.java</h1><pre class="source lang-java linenums">package com.devcharles.piazzapanic.components;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Engine;
+
+<span class="fc" id="L9">public class FoodComponent implements Component{</span>
+
+    public FoodType type;
+
+    public Engine engine;
+
+<span class="fc" id="L15">    public enum FoodType {</span>
+        // These ids correspond to the order of the food in the sprite!
+        // price is the price of the dish.
+<span class="fc" id="L18">        unformedPatty(1,0),</span>
+<span class="fc" id="L19">        formedPatty(2,0),</span>
+<span class="fc" id="L20">        grilledPatty(3,0),</span>
+<span class="fc" id="L21">        buns(4,0),</span>
+<span class="fc" id="L22">        toastedBuns(5,0),</span>
+<span class="fc" id="L23">        burger(6,6),</span>
+<span class="fc" id="L24">        lettuce(7,0),</span>
+<span class="fc" id="L25">        slicedLettuce(8,0),</span>
+<span class="fc" id="L26">        tomato(9,0),</span>
+<span class="fc" id="L27">        slicedTomato(10,0),</span>
+<span class="fc" id="L28">        onion(11,0),</span>
+<span class="fc" id="L29">        slicedOnion(12,0),</span>
+<span class="fc" id="L30">        salad(13,3),</span>
+<span class="fc" id="L31">        potato(14,0),</span>
+<span class="fc" id="L32">        butterlessJacketPotato(15,0),</span>
+<span class="fc" id="L33">        jacketPotato(16,4),</span>
+<span class="fc" id="L34">        butter(17,0),</span>
+<span class="fc" id="L35">        dough(18,0),</span>
+<span class="fc" id="L36">        rolledDough(19,0),</span>
+<span class="fc" id="L37">        tomatoDough(20,0),</span>
+<span class="fc" id="L38">        tomatoCheeseDough(21,0),</span>
+<span class="fc" id="L39">        pizza(22,11),</span>
+<span class="fc" id="L40">        tomatoPaste(23,0),</span>
+<span class="fc" id="L41">        cheese(24,0),</span>
+<span class="fc" id="L42">        gratedCheese(25,0);</span>
+
+        private int value;
+        private float price;
+
+<span class="fc" id="L47">        FoodType(int id, float price) {</span>
+<span class="fc" id="L48">            this.value = id;</span>
+<span class="fc" id="L49">            this.price= price;</span>
+<span class="fc" id="L50">        }</span>
+
+        public int getValue() {
+<span class="fc" id="L53">            return value;</span>
+        }
+
+        public void setPrice(){
+<span class="nc" id="L57">            price = price * 2;</span>
+<span class="nc" id="L58">        }</span>
+
+        public void originalPrice(){
+<span class="nc" id="L61">            price = price - 2;</span>
+<span class="nc" id="L62">        }</span>
+<span class="nc" id="L63">        public float getPrice(){return price;}</span>
+<span class="fc" id="L64">        private static final Map&lt;Integer, FoodType&gt; _map = new HashMap&lt;Integer, FoodType&gt;();</span>
+        static {
+<span class="fc bfc" id="L66" title="All 2 branches covered.">            for (FoodType stationType : FoodType.values()) {</span>
+<span class="fc" id="L67">                _map.put(stationType.value, stationType);</span>
+            }
+<span class="fc" id="L69">        }</span>
+
+        /**
+         * Get type from id
+         * 
+         * @param value id value
+         * @return Enum type
+         */
+        public static FoodType from(int value) {
+<span class="fc" id="L78">            return _map.get(value);</span>
+        }
+    }
+
+    static public FoodType getFood(String name) {
+<span class="pc bpc" id="L83" title="1 of 26 branches missed.">        switch (name) {</span>
+            case &quot;UnformedPatty&quot;:
+<span class="fc" id="L85">                return FoodType.unformedPatty;</span>
+            case &quot;FormedPatty&quot;:
+<span class="fc" id="L87">                return FoodType.formedPatty;</span>
+            case &quot;GrilledPatty&quot;:
+<span class="fc" id="L89">                return FoodType.grilledPatty;</span>
+            case &quot;Buns&quot;:
+<span class="fc" id="L91">                return FoodType.buns;</span>
+            case &quot;ToastedBuns&quot;:
+<span class="fc" id="L93">                return FoodType.toastedBuns;</span>
+            case &quot;Burger&quot;:
+<span class="fc" id="L95">                return FoodType.burger;</span>
+            case &quot;Lettuce&quot;:
+<span class="fc" id="L97">                return FoodType.lettuce;</span>
+            case &quot;SlicedLettuce&quot;:
+<span class="fc" id="L99">                return FoodType.slicedLettuce;</span>
+            case &quot;Tomato&quot;:
+<span class="fc" id="L101">                return FoodType.tomato;</span>
+            case &quot;SlicedTomato&quot;:
+<span class="fc" id="L103">                return FoodType.slicedTomato;</span>
+            case &quot;Onion&quot;:
+<span class="fc" id="L105">                return FoodType.onion;</span>
+            case &quot;SlicedOnion&quot;:
+<span class="fc" id="L107">                return FoodType.slicedOnion;</span>
+            case &quot;Salad&quot;:
+<span class="fc" id="L109">                return FoodType.salad;</span>
+            case &quot;Potato&quot;:
+<span class="fc" id="L111">                return FoodType.potato;</span>
+            case &quot;ButterlessJacketPotato&quot;:
+<span class="fc" id="L113">                return FoodType.butterlessJacketPotato;</span>
+            case &quot;JacketPotato&quot;:
+<span class="fc" id="L115">                return FoodType.jacketPotato;</span>
+            case &quot;Butter&quot;:
+<span class="fc" id="L117">                return FoodType.butter;</span>
+            case &quot;Dough&quot;:
+<span class="fc" id="L119">                return FoodType.dough;</span>
+            case &quot;RolledDough&quot;:
+<span class="fc" id="L121">                return FoodType.rolledDough;</span>
+            case &quot;TomatoDough&quot;:
+<span class="fc" id="L123">                return FoodType.tomatoDough;</span>
+            case &quot;TomatoCheeseDough&quot;:
+<span class="fc" id="L125">                return FoodType.tomatoCheeseDough;</span>
+            case &quot;Pizza&quot;:
+<span class="fc" id="L127">                return FoodType.pizza;</span>
+            case &quot;TomatoPaste&quot;:
+<span class="fc" id="L129">                return FoodType.tomatoPaste;</span>
+            case &quot;Cheese&quot;:
+<span class="fc" id="L131">                return FoodType.cheese;</span>
+            case &quot;GratedCheese&quot;:
+<span class="fc" id="L133">                return FoodType.gratedCheese;</span>
+        }
+
+<span class="nc" id="L136">        return FoodType.dough;</span>
+    }
+
+    static public String toString(FoodType food) {
+<span class="pc bpc" id="L140" title="1 of 26 branches missed.">        switch (food) {</span>
+            case unformedPatty:
+<span class="fc" id="L142">                return &quot;UnformedPatty&quot;;</span>
+            case formedPatty:
+<span class="fc" id="L144">                return &quot;FormedPatty&quot;;</span>
+            case grilledPatty:
+<span class="fc" id="L146">                return &quot;GrilledPatty&quot;;</span>
+            case buns:
+<span class="fc" id="L148">                return &quot;Buns&quot;;</span>
+            case toastedBuns:
+<span class="fc" id="L150">                return &quot;ToastedBuns&quot;;</span>
+            case burger:
+<span class="fc" id="L152">                return &quot;Burger&quot;;</span>
+            case lettuce:
+<span class="fc" id="L154">                return &quot;Lettuce&quot;;</span>
+            case slicedLettuce:
+<span class="fc" id="L156">                return &quot;SlicedLettuce&quot;;</span>
+            case tomato:
+<span class="fc" id="L158">                return &quot;Tomato&quot;;</span>
+            case slicedTomato:
+<span class="fc" id="L160">                return &quot;SlicedTomato&quot;;</span>
+            case onion:
+<span class="fc" id="L162">                return &quot;Onion&quot;;</span>
+            case slicedOnion:
+<span class="fc" id="L164">                return &quot;SlicedOnion&quot;;</span>
+            case salad:
+<span class="fc" id="L166">                return &quot;Salad&quot;;</span>
+            case potato:
+<span class="fc" id="L168">                return &quot;Potato&quot;;</span>
+            case butterlessJacketPotato:
+<span class="fc" id="L170">                return &quot;ButterlessJacketPotato&quot;;</span>
+            case jacketPotato:
+<span class="fc" id="L172">                return &quot;JacketPotato&quot;;</span>
+            case butter:
+<span class="fc" id="L174">                return &quot;Butter&quot;;</span>
+            case dough:
+<span class="fc" id="L176">                return &quot;Dough&quot;;</span>
+            case rolledDough:
+<span class="fc" id="L178">                return &quot;RolledDough&quot;;</span>
+            case tomatoDough:
+<span class="fc" id="L180">                return &quot;TomatoDough&quot;;</span>
+            case tomatoCheeseDough:
+<span class="fc" id="L182">                return &quot;TomatoCheeseDough&quot;;</span>
+            case pizza:
+<span class="fc" id="L184">                return &quot;Pizza&quot;;</span>
+            case tomatoPaste:
+<span class="fc" id="L186">                return &quot;TomatoPaste&quot;;</span>
+            case cheese:
+<span class="fc" id="L188">                return &quot;Cheese&quot;;</span>
+            case gratedCheese:
+<span class="fc" id="L190">                return &quot;GratedCheese&quot;;</span>
+            default:
+<span class="nc" id="L192">                return &quot;?&quot;;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FoodComponentTests.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.devcharles.piazzapanic.testing.components</a> &gt; <span class="el_source">FoodComponentTests.java</span></div><h1>FoodComponentTests.java</h1><pre class="source lang-java linenums">package com.devcharles.piazzapanic.testing.components;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import com.devcharles.piazzapanic.components.FoodComponent;
+import com.devcharles.piazzapanic.components.FoodComponent.FoodType;
+import com.devcharles.piazzapanic.testing.BasicTest;
+import com.devcharles.piazzapanic.testing.GdxTestRunner;
+
+@RunWith(GdxTestRunner.class)
+<span class="fc" id="L13">public class FoodComponentTests implements BasicTest {</span>
+
+    private FoodComponent component;
+
+    @Override
+    @Before
+    public void initialize() throws Exception {
+<span class="fc" id="L20">        component = new FoodComponent();</span>
+<span class="fc" id="L21">    }</span>
+
+    @Override
+    @Test
+    public void constructorTest() throws Exception {
+<span class="fc" id="L26">        FoodComponent c = new FoodComponent();</span>
+<span class="fc" id="L27">    }</span>
+
+    @Test
+    public void getFoodTest() throws Exception {
+<span class="fc" id="L31">        String[] strings = { &quot;UnformedPatty&quot;, &quot;FormedPatty&quot;, &quot;GrilledPatty&quot;, &quot;Buns&quot;, &quot;ToastedBuns&quot;, &quot;Burger&quot;, &quot;Lettuce&quot;,</span>
+                &quot;SlicedLettuce&quot;, &quot;Tomato&quot;, &quot;SlicedTomato&quot;, &quot;Onion&quot;, &quot;SlicedOnion&quot;, &quot;Salad&quot;, &quot;Potato&quot;,
+                &quot;ButterlessJacketPotato&quot;, &quot;JacketPotato&quot;, &quot;Butter&quot;, &quot;Dough&quot;, &quot;RolledDough&quot;, &quot;TomatoDough&quot;,
+                &quot;TomatoCheeseDough&quot;, &quot;Pizza&quot;, &quot;TomatoPaste&quot;, &quot;Cheese&quot;, &quot;GratedCheese&quot; };
+
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        for (String str : strings) {</span>
+<span class="fc" id="L37">            FoodComponent.getFood(str);</span>
+        }
+<span class="fc" id="L39">    }</span>
+
+    @Test
+    public void toStringTest() throws Exception {
+<span class="fc" id="L43">        FoodType[] foodTypes = { FoodType.unformedPatty, FoodType.formedPatty, FoodType.grilledPatty, FoodType.buns,</span>
+                FoodType.toastedBuns, FoodType.burger, FoodType.lettuce, FoodType.slicedLettuce, FoodType.tomato,
+                FoodType.slicedTomato, FoodType.onion, FoodType.slicedOnion, FoodType.salad, FoodType.potato,
+                FoodType.butterlessJacketPotato, FoodType.jacketPotato, FoodType.butter, FoodType.dough,
+                FoodType.rolledDough, FoodType.tomatoDough, FoodType.tomatoCheeseDough, FoodType.pizza,
+                FoodType.tomatoPaste, FoodType.cheese, FoodType.gratedCheese };
+
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        for (FoodType food : foodTypes) {</span>
+<span class="fc" id="L51">            FoodComponent.toString(food);</span>
+        }
+
+<span class="fc" id="L54">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

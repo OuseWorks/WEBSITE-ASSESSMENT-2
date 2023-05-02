@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlayerControlSystem.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.devcharles.piazzapanic.componentsystems</a> &gt; <span class="el_source">PlayerControlSystem.java</span></div><h1>PlayerControlSystem.java</h1><pre class="source lang-java linenums">package com.devcharles.piazzapanic.componentsystems;
+
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.systems.IteratingSystem;
+import com.badlogic.gdx.math.Vector2;
+import com.devcharles.piazzapanic.components.B2dBodyComponent;
+import com.devcharles.piazzapanic.components.ControllableComponent;
+import com.devcharles.piazzapanic.components.PlayerComponent;
+import com.devcharles.piazzapanic.components.PowerUpComponent.PowerUpType;
+import com.devcharles.piazzapanic.input.KeyboardInput;
+import com.devcharles.piazzapanic.utility.Mappers;
+
+/**
+ * Controls the one cook that has the PlayerComponent
+ */
+public class PlayerControlSystem extends IteratingSystem {
+
+    KeyboardInput input;
+<span class="fc" id="L20">    Integer timer = 30000;</span>
+
+<span class="fc" id="L22">    boolean changingCooks = false;</span>
+    PlayerComponent playerComponent;
+    
+<span class="fc" id="L25">    int speedMultiplier = 1;</span>
+
+    public PlayerControlSystem(KeyboardInput input) {
+<span class="fc" id="L28">        super(Family.all(ControllableComponent.class).get());</span>
+
+<span class="fc" id="L30">        this.input = input;</span>
+<span class="fc" id="L31">    }</span>
+
+    @Override
+    protected void processEntity(Entity entity, float deltaTime) {
+
+        // Collect toggleable inputs
+        // Those need to be toggled off once recieved to prevent registering the input
+        // twice
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (this.changingCooks) {</span>
+<span class="nc" id="L40">            this.changingCooks = false;</span>
+<span class="nc" id="L41">            entity.add(this.playerComponent);</span>
+        }
+
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (!Mappers.player.has(entity)) {</span>
+<span class="nc" id="L45">            return;</span>
+        }
+
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (input.changeCooks) {</span>
+<span class="nc" id="L49">            input.changeCooks = false;</span>
+
+<span class="nc" id="L51">            this.changingCooks = true; // Next cook in the queue will get playercomponent</span>
+<span class="nc" id="L52">            this.playerComponent = Mappers.player.get(entity);</span>
+<span class="nc" id="L53">            entity.remove(PlayerComponent.class);</span>
+<span class="nc" id="L54">            return;</span>
+        }
+
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (input.putDown) {</span>
+<span class="nc" id="L58">            input.putDown = false;</span>
+<span class="nc" id="L59">            Mappers.player.get(entity).putDown = true;</span>
+        }
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (input.pickUp) {</span>
+<span class="nc" id="L62">            input.pickUp = false;</span>
+<span class="nc" id="L63">            Mappers.player.get(entity).pickUp = true;</span>
+        }
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (input.interact) {</span>
+<span class="nc" id="L66">            input.interact = false;</span>
+<span class="nc" id="L67">            Mappers.player.get(entity).interact = true;</span>
+        }
+
+<span class="nc" id="L70">        B2dBodyComponent b2body = Mappers.b2body.get(entity);</span>
+        
+<span class="nc" id="L72">        Vector2 direction = new Vector2(0, 0);</span>
+        
+        // collect all the movement inputs
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (input.left) {</span>
+<span class="nc" id="L76">            direction.add(-1, 0);</span>
+        }
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (input.right) {</span>
+<span class="nc" id="L79">            direction.add(1, 0);</span>
+        }
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (input.up) {</span>
+<span class="nc" id="L82">            direction.add(0, 1);</span>
+        }
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (input.down) {</span>
+<span class="nc" id="L85">            direction.add(0, -1);</span>
+        }
+
+<span class="nc" id="L88">        ControllableComponent cook = Mappers.controllable.get(entity);</span>
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if(cook.currentPowerup.contains(PowerUpType.SpeedBoost)){</span>
+<span class="nc" id="L91">            speedMultiplier = 2;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if(timer &lt;= 0 ){</span>
+<span class="nc" id="L93">                cook.currentPowerup.remove(PowerUpType.SpeedBoost);</span>
+<span class="nc" id="L94">                speedMultiplier = 1;</span>
+<span class="nc" id="L95">                timer = 30000;</span>
+            }
+<span class="nc" id="L97">           timer = timer - 17;</span>
+        }
+
+        // Normalise vector (make length 1). This ensures player moves at the same speed
+        // in all directions.
+        // e.g. if player wants to go left and up at the same time, the vector is (1,1)
+        // and length (speed) is sqrt(2)
+        // but we need length to be 1
+<span class="nc" id="L105">        direction.nor();</span>
+        //increase the player speed
+<span class="nc" id="L107">        direction = direction.scl(speedMultiplier);</span>
+
+<span class="nc" id="L109">        Vector2 finalV = direction.cpy().scl(2000 * deltaTime);</span>
+
+        // Rotate the box2d shape in the movement direction
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (!direction.isZero(0.7f)) {</span>
+<span class="nc" id="L113">            b2body.body.setTransform(b2body.body.getPosition(), direction.angleRad());</span>
+<span class="nc" id="L114">            b2body.body.applyLinearImpulse(finalV, b2body.body.getPosition(), true);</span>
+        }
+
+<span class="nc" id="L117">    }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

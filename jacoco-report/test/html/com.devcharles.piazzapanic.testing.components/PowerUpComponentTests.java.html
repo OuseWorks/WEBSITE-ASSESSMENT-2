@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PowerUpComponentTests.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.devcharles.piazzapanic.testing.components</a> &gt; <span class="el_source">PowerUpComponentTests.java</span></div><h1>PowerUpComponentTests.java</h1><pre class="source lang-java linenums">package com.devcharles.piazzapanic.testing.components;
+
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import com.devcharles.piazzapanic.components.PowerUpComponent;
+import com.devcharles.piazzapanic.components.PowerUpComponent.PowerUpType;
+import com.devcharles.piazzapanic.testing.BasicTest;
+import com.devcharles.piazzapanic.testing.GdxTestRunner;
+
+@RunWith(GdxTestRunner.class)
+<span class="fc" id="L15">public class PowerUpComponentTests implements BasicTest {</span>
+
+    private PowerUpComponent component;
+
+    @Override
+    @Before
+    public void initialize() throws Exception {
+<span class="fc" id="L22">        component = new PowerUpComponent();</span>
+<span class="fc" id="L23">    }</span>
+
+    @Override
+    @Test
+    public void constructorTest() throws Exception {
+<span class="fc" id="L28">        PowerUpComponent c = new PowerUpComponent();</span>
+<span class="fc" id="L29">        c.type = PowerUpType.InstaCook;</span>
+<span class="fc" id="L30">    }</span>
+
+    @Test
+    public void expectedFromTest() {
+        // test normal function
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        assertTrue(&quot;Check expected int returns normal value&quot;, PowerUpType.from(1) == PowerUpType.BinACustomer);</span>
+
+<span class="fc" id="L37">    }</span>
+
+    @Test
+    public void unexpectedFromTest() {
+        // test unexpected functionality
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        assertTrue(&quot;Check unexpected int returns null&quot;, PowerUpType.from(10000) == null);</span>
+<span class="fc" id="L43">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

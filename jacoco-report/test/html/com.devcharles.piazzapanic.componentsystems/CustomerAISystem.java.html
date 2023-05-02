@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomerAISystem.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.devcharles.piazzapanic.componentsystems</a> &gt; <span class="el_source">CustomerAISystem.java</span></div><h1>CustomerAISystem.java</h1><pre class="source lang-java linenums">package com.devcharles.piazzapanic.componentsystems;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.badlogic.ashley.core.Engine;
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.systems.IteratingSystem;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.ai.steer.Proximity;
+import com.badlogic.gdx.ai.steer.behaviors.Arrive;
+import com.badlogic.gdx.ai.steer.behaviors.CollisionAvoidance;
+import com.badlogic.gdx.ai.steer.behaviors.PrioritySteering;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.World;
+import com.devcharles.piazzapanic.GameScreen;
+import com.devcharles.piazzapanic.components.*;
+import com.devcharles.piazzapanic.components.FoodComponent.FoodType;
+import com.devcharles.piazzapanic.scene2d.Hud;
+import com.devcharles.piazzapanic.utility.EntityFactory;
+import com.devcharles.piazzapanic.utility.Difficulty;
+import com.devcharles.piazzapanic.utility.GdxTimer;
+import com.devcharles.piazzapanic.utility.Mappers;
+import com.devcharles.piazzapanic.utility.box2d.Box2dLocation;
+import com.devcharles.piazzapanic.utility.box2d.Box2dRadiusProximity;
+
+/**
+ * Controls the AI Customers, creates orders.
+ */
+public class CustomerAISystem extends IteratingSystem {
+
+    private final Map&lt;Integer, Box2dLocation&gt; objectives;
+    private final Map&lt;Integer, Boolean&gt; objectiveTaken;
+
+    private final World world;
+    private GdxTimer spawnTimer;
+    private final EntityFactory factory;
+<span class="fc" id="L40">    private int numOfCustomerTotal = 0;</span>
+    private final Hud hud;
+    private final Difficulty difficulty;
+    private final Integer[] reputationPoints;
+    private final Float[] tillBalance;
+    private final Integer[] customersServed;
+    private int CUSTOMER;
+<span class="fc" id="L47">    private boolean firstSpawn = true;</span>
+    private GameScreen gameScreen;
+<span class="fc" id="L49">    private Integer timeFrozen = 30000;</span>
+<span class="fc" id="L50">    private Integer DoubleRepCounter = 30000;</span>
+
+    // List of customers, on removal we move the other customers up a place
+    // (queueing).
+<span class="fc" id="L54">    private final ArrayList&lt;Entity&gt; customers = new ArrayList&lt;Entity&gt;() {</span>
+        @Override
+        public boolean remove(Object o) {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            for (Entity entity : customers) {</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">                if (entity != o) {</span>
+<span class="nc" id="L59">                    AIAgentComponent aiAgent = Mappers.aiAgent.get(entity);</span>
+
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                    if (aiAgent.currentObjective - 1 &gt;= 0) {</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">                        if (!objectiveTaken.get(aiAgent.currentObjective - 1)) {</span>
+<span class="nc" id="L63">                            makeItGoThere(aiAgent, aiAgent.currentObjective - 1);</span>
+                        }
+                    }
+
+                }
+<span class="nc" id="L68">            }</span>
+<span class="nc" id="L69">            return super.remove(o);</span>
+        }
+    };
+
+    /**
+     * Instantiate the system.
+     * 
+     * @param objectives       Map of objectives available
+     * @param world            Box2D {@link World} for AI and disposing of customer
+     *                         entities.
+     * @param factory          {@link EntityFactory} for creating new customers
+     * @param hud              {@link HUD} for updating orders, reputation
+     * @param reputationPoints array-wrapped integer reputation passed by-reference
+     *                         See {@link Hud}
+     */
+    public CustomerAISystem(Map&lt;Integer, Box2dLocation&gt; objectives, World world, EntityFactory factory, Hud hud,
+            Integer[] reputationPoints, int customer, Difficulty difficulty, Float[] tillBalance,
+            Integer[] customersServed, GameScreen gameScreen) {
+<span class="fc" id="L87">        super(Family.all(AIAgentComponent.class, CustomerComponent.class).get());</span>
+
+<span class="fc" id="L89">        this.CUSTOMER = customer;</span>
+<span class="fc" id="L90">        this.hud = hud;</span>
+<span class="fc" id="L91">        this.objectives = objectives;</span>
+<span class="fc" id="L92">        this.objectiveTaken = new HashMap&lt;Integer, Boolean&gt;();</span>
+<span class="fc" id="L93">        this.reputationPoints = reputationPoints;</span>
+<span class="fc" id="L94">        this.difficulty = difficulty;</span>
+<span class="fc" id="L95">        this.tillBalance = tillBalance;</span>
+<span class="fc" id="L96">        this.customersServed = customersServed;</span>
+<span class="fc" id="L97">        this.gameScreen = gameScreen;</span>
+
+        // Use a reference to the world to destroy box2d bodies when despawning
+        // customers
+<span class="fc" id="L101">        this.world = world;</span>
+<span class="fc" id="L102">        this.factory = factory;</span>
+
+<span class="fc" id="L104">        this.spawnTimer = new GdxTimer(difficulty.getSpawnFrequency(), true, true);</span>
+        // spawnTimer.start();
+<span class="fc" id="L106">    }</span>
+
+    @Override
+    public void update(float deltaTime) {
+<span class="nc bnc" id="L110" title="All 6 branches missed.">        if (firstSpawn || (spawnTimer.tick(deltaTime) &amp;&amp; CUSTOMER &gt; 0)) {</span>
+<span class="nc" id="L111">            firstSpawn = false;</span>
+
+            // Only add a customer is there is space in the queue and there are customers
+            // still remaining.
+            // The number of customers in the queue cannot be more than the number of
+            // customers remaining.
+            // There are 5 queue spots on the map.
+<span class="nc bnc" id="L118" title="All 4 branches missed.">            if (numOfCustomerTotal &lt; 5 &amp;&amp; !(numOfCustomerTotal + 1 &gt; CUSTOMER)) {</span>
+
+                // The first customer will arrive alone but after that there is a chance
+                // customers
+                // will arrive in groups of two or three.
+<span class="nc" id="L123">                int customersToSpawn = getRandomCustomerGroupSize();</span>
+<span class="nc bnc" id="L124" title="All 4 branches missed.">                if (numOfCustomerTotal + customersToSpawn &gt; 5 || firstSpawn) {</span>
+<span class="nc" id="L125">                    customersToSpawn = 1;</span>
+                }
+<span class="nc" id="L127">                Vector2 pos = new Vector2(objectives.get(-2).getPosition());</span>
+
+                // Each customer in group will have spawn point offset to stop entity overlap
+                // and queue blocking.
+<span class="nc bnc" id="L131" title="All 2 branches missed.">                for (int i = 0; i &lt; customersToSpawn; i++) {</span>
+<span class="nc" id="L132">                    pos.x += 0.5;</span>
+<span class="nc" id="L133">                    Entity newCustomer = factory.createCustomer(pos);</span>
+<span class="nc" id="L134">                    customers.add(newCustomer);</span>
+<span class="nc" id="L135">                    numOfCustomerTotal++;</span>
+<span class="nc" id="L136">                    Mappers.customer.get(newCustomer).timer.start();</span>
+<span class="nc" id="L137">                    processEntity(newCustomer, deltaTime);</span>
+                }
+<span class="nc" id="L139">                Gdx.app.log(&quot;Info&quot;, customersToSpawn + &quot; customer(s) have arrived.&quot;);</span>
+            }
+
+            // If endless mode then decrease customer spawn frequency by one second every
+            // time a customer is served.
+            // Result is customers will arrive more often over time in endless mode.
+            // If the time freeze powerup has been purchased pause the spawn timer until the
+            // powerup time has passed.
+<span class="nc bnc" id="L147" title="All 4 branches missed.">            if (firstSpawn == false &amp;&amp; difficulty != Difficulty.SCENARIO) {</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                if (gameScreen.TimeFreeze) {</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                    if (timeFrozen &lt;= 0) {</span>
+<span class="nc" id="L150">                        spawnTimer.start();</span>
+<span class="nc" id="L151">                        timeFrozen = 30000;</span>
+                    }
+<span class="nc" id="L153">                    spawnTimer.stop();</span>
+<span class="nc" id="L154">                    timeFrozen = timeFrozen - 25;</span>
+                }
+<span class="nc" id="L156">                spawnTimer = new GdxTimer((difficulty.getSpawnFrequency() - ((999 - CUSTOMER) * 1000)), true, true);</span>
+<span class="nc" id="L157">                Gdx.app.log(&quot;Info&quot;,</span>
+<span class="nc" id="L158">                        &quot;Spawn frequency is now &quot; + (difficulty.getSpawnFrequency() - ((999 - CUSTOMER) * 1000)));</span>
+            }
+        }
+
+<span class="nc" id="L162">        FoodType[] orders = new FoodType[customers.size()];</span>
+<span class="nc" id="L163">        int[] orderTimes = new int[customers.size()];</span>
+<span class="nc" id="L164">        int i = 0;</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        for (Entity customer : customers) {</span>
+<span class="nc" id="L166">            orders[i] = Mappers.customer.get(customer).order;</span>
+<span class="nc" id="L167">            orderTimes[i] = (120000 - Mappers.customer.get(customer).timer.getElapsed()) / 1000;</span>
+<span class="nc" id="L168">            i++;</span>
+<span class="nc" id="L169">        }</span>
+
+<span class="nc bnc" id="L171" title="All 8 branches missed.">        if ((!hud.gameOver &amp;&amp; customers.size() == 0 &amp;&amp; CUSTOMER == 0) || reputationPoints[0] == 0) {</span>
+<span class="nc" id="L172">            hud.triggerGameOver = true;</span>
+        }
+
+<span class="nc" id="L175">        super.update(deltaTime);</span>
+<span class="nc" id="L176">        hud.updateOrders(orders, orderTimes);</span>
+<span class="nc" id="L177">    }</span>
+
+    @Override
+    protected void processEntity(Entity entity, float deltaTime) {
+<span class="nc" id="L181">        AIAgentComponent aiAgent = Mappers.aiAgent.get(entity);</span>
+<span class="nc" id="L182">        CustomerComponent customer = Mappers.customer.get(entity);</span>
+<span class="nc" id="L183">        TransformComponent transform = Mappers.transform.get(entity);</span>
+
+<span class="nc bnc" id="L185" title="All 4 branches missed.">        if (customer.food != null &amp;&amp; transform.position.x &gt;= (objectives.get(-1).getPosition().x - 2)) {</span>
+<span class="nc" id="L186">            destroyCustomer(entity);</span>
+<span class="nc" id="L187">            return;</span>
+        }
+
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (aiAgent.steeringBody.getSteeringBehavior() == null) {</span>
+<span class="nc" id="L191">            Gdx.app.log(&quot;customer&quot;, &quot;this customer is moving to objective&quot; + (customers.size() - 1));</span>
+<span class="nc" id="L192">            makeItGoThere(aiAgent, customers.size() - 1);</span>
+        }
+
+<span class="nc" id="L195">        aiAgent.steeringBody.update(deltaTime);</span>
+
+        // Lower reputation points only in endless if they have waited longer than time
+        // alloted.
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (customer.timer.tick(deltaTime)) {</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">            if (reputationPoints[0] &gt; 0) {</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">                if (difficulty != Difficulty.SCENARIO) {</span>
+<span class="nc" id="L202">                    reputationPoints[0]--;</span>
+                }
+            }
+<span class="nc" id="L205">            customer.timer.stop();</span>
+        }
+
+        // Remove a customer upon activation of the BinACustomer powerup.
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (gameScreen.BinACustomer) {</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">            if (CUSTOMER == 0) {</span>
+<span class="nc" id="L211">                gameScreen.BinOff();</span>
+            }
+<span class="nc" id="L213">            fulfillOrder(entity, customer, entity, gameScreen.BinACustomer, gameScreen.DoubleRep);</span>
+<span class="nc" id="L214">            gameScreen.BinOff();</span>
+        }
+
+        // Freeze the customer timers for all customers whilst the powerup is active.
+<span class="nc bnc" id="L218" title="All 2 branches missed.">        if (gameScreen.TimeFreeze) {</span>
+<span class="nc" id="L219">            timeFreeze(customer);</span>
+        }
+
+        // Decrease the timer for the double money powerup.
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (gameScreen.DoubleRep) {</span>
+<span class="nc" id="L224">            DoubleRepCounter -= 17;</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">            if (DoubleRepCounter &lt;= 0) {</span>
+<span class="nc" id="L226">                gameScreen.DoubleOff();</span>
+<span class="nc" id="L227">                DoubleRepCounter = 30000;</span>
+
+            }
+        }
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (customer.interactingCook != null) {</span>
+<span class="nc" id="L232">            PlayerComponent player = Mappers.player.get(customer.interactingCook);</span>
+
+            // In order, check if the player is touching and pressing
+            // the correct key to interact with the customer.
+<span class="nc bnc" id="L236" title="All 4 branches missed.">            if (player == null || !player.putDown) {</span>
+<span class="nc" id="L237">                return;</span>
+            }
+<span class="nc" id="L239">            player.putDown = false;</span>
+
+<span class="nc" id="L241">            ControllableComponent cook = Mappers.controllable.get(customer.interactingCook);</span>
+
+<span class="nc bnc" id="L243" title="All 2 branches missed.">            if (cook.currentFood.isEmpty()) {</span>
+<span class="nc" id="L244">                return;</span>
+            }
+
+<span class="nc" id="L247">            Entity food = cook.currentFood.pop();</span>
+
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            if (Mappers.food.get(food).type == customer.order) {</span>
+                // Fulfill order
+<span class="nc" id="L251">                Gdx.app.log(&quot;Order success&quot;, customer.order.name());</span>
+<span class="nc" id="L252">                fulfillOrder(entity, customer, food, gameScreen.BinACustomer, gameScreen.DoubleRep);</span>
+<span class="nc" id="L253">                gameScreen.audio.playThanks();</span>
+            } else {
+<span class="nc" id="L255">                getEngine().removeEntity(food);</span>
+<span class="nc" id="L256">                gameScreen.audio.playSigh();</span>
+            }
+
+        }
+<span class="nc" id="L260">    }</span>
+
+    /**
+     * 
+     * @param customer for freezeing the customers order timer whilst the powerup is
+     *                 active
+     */
+    private void timeFreeze(CustomerComponent customer) {
+<span class="nc" id="L268">        customer.timer.stop();</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">        if (timeFrozen &lt;= 0) {</span>
+<span class="nc" id="L270">            customer.timer.start();</span>
+<span class="nc" id="L271">            gameScreen.TimeOff();</span>
+        }
+<span class="nc" id="L273">    }</span>
+
+    /**
+     * Remove the customer from the {@link World} and remove their entity.
+     */
+    private void destroyCustomer(Entity customer) {
+<span class="nc" id="L279">        getEngine().removeEntity(Mappers.customer.get(customer).food);</span>
+<span class="nc" id="L280">        world.destroyBody(Mappers.b2body.get(customer).body);</span>
+<span class="nc" id="L281">        getEngine().removeEntity(customer);</span>
+<span class="nc" id="L282">    }</span>
+
+    /**
+     * Give the customer an objetive to go to.
+     * 
+     * @param locationID and id from {@link CustomerAISystem.objectives}
+     */
+    private void makeItGoThere(AIAgentComponent aiAgent, int locationID) {
+<span class="nc" id="L290">        objectiveTaken.put(aiAgent.currentObjective, false);</span>
+
+<span class="nc" id="L292">        Box2dLocation there = objectives.get(locationID);</span>
+
+<span class="nc" id="L294">        Arrive&lt;Vector2&gt; arrive = new Arrive&lt;Vector2&gt;(aiAgent.steeringBody)</span>
+<span class="nc" id="L295">                .setTimeToTarget(0.1f)</span>
+<span class="nc" id="L296">                .setArrivalTolerance(0.25f)</span>
+<span class="nc" id="L297">                .setDecelerationRadius(2)</span>
+<span class="nc" id="L298">                .setTarget(there);</span>
+
+<span class="nc" id="L300">        Proximity&lt;Vector2&gt; proximity = new Box2dRadiusProximity(aiAgent.steeringBody, world, 1f);</span>
+<span class="nc" id="L301">        CollisionAvoidance&lt;Vector2&gt; collisionAvoidance = new CollisionAvoidance&lt;Vector2&gt;(</span>
+                aiAgent.steeringBody, proximity);
+
+<span class="nc" id="L304">        PrioritySteering&lt;Vector2&gt; prioritySteering = new PrioritySteering&lt;Vector2&gt;(aiAgent.steeringBody)</span>
+<span class="nc" id="L305">                .add(collisionAvoidance)</span>
+<span class="nc" id="L306">                .add(arrive);</span>
+
+<span class="nc" id="L308">        aiAgent.steeringBody.setSteeringBehavior(prioritySteering);</span>
+<span class="nc" id="L309">        aiAgent.currentObjective = locationID;</span>
+<span class="nc" id="L310">        objectiveTaken.put(aiAgent.currentObjective, true);</span>
+
+<span class="nc bnc" id="L312" title="All 2 branches missed.">        if (locationID == -1) {</span>
+<span class="nc" id="L313">            aiAgent.steeringBody.setOrientation(0);</span>
+        } else {
+<span class="nc" id="L315">            aiAgent.steeringBody.setOrientation((float) (1.5f * Math.PI));</span>
+        }
+<span class="nc" id="L317">    }</span>
+
+    /**
+     * Give customer food, send them away and remove the order from the list
+     */
+    private void fulfillOrder(Entity entity, CustomerComponent customer, Entity foodEntity, Boolean BinACustomer,
+            Boolean DoubleRep) {
+
+<span class="nc bnc" id="L325" title="All 2 branches missed.">        if (BinACustomer) {</span>
+<span class="nc" id="L326">            getEngine().removeEntity(entity);</span>
+<span class="nc" id="L327">            customer.timer.stop();</span>
+<span class="nc" id="L328">            customer.timer.reset();</span>
+<span class="nc" id="L329">            customer.order = null;</span>
+<span class="nc" id="L330">            customers.remove(entity);</span>
+<span class="nc" id="L331">            numOfCustomerTotal--;</span>
+<span class="nc" id="L332">            CUSTOMER--;</span>
+
+        }
+
+<span class="nc" id="L336">        Engine engine = getEngine();</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">        if (customer.order != null) {</span>
+<span class="nc" id="L338">            float customerTip = getRandomCustomerTip(customer.order.getPrice());</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">            if (customerTip &gt; 0) {</span>
+<span class="nc" id="L340">                hud.displayInfoMessage(&quot;Customer has tipped $ &quot; + Float.toString(customerTip));</span>
+            }
+
+            // if double rep powerup is active double the price of the order
+<span class="nc bnc" id="L344" title="All 2 branches missed.">            if (DoubleRep) {</span>
+<span class="nc" id="L345">                float doublePrice = customer.order.getPrice() * 2f;</span>
+<span class="nc" id="L346">                tillBalance[0] += doublePrice + customerTip;</span>
+            }
+
+<span class="nc" id="L349">            tillBalance[0] += customer.order.getPrice() + customerTip;</span>
+<span class="nc" id="L350">            customer.order = null;</span>
+
+<span class="nc" id="L352">            ItemComponent heldItem = engine.createComponent(ItemComponent.class);</span>
+<span class="nc" id="L353">            heldItem.holderTransform = Mappers.transform.get(entity);</span>
+
+<span class="nc" id="L355">            foodEntity.add(heldItem);</span>
+
+<span class="nc" id="L357">            customer.food = foodEntity;</span>
+
+<span class="nc" id="L359">            AIAgentComponent aiAgent = Mappers.aiAgent.get(entity);</span>
+<span class="nc" id="L360">            makeItGoThere(aiAgent, -1);</span>
+
+<span class="nc" id="L362">            customer.timer.stop();</span>
+<span class="nc" id="L363">            customer.timer.reset();</span>
+
+<span class="nc" id="L365">            customers.remove(entity);</span>
+<span class="nc" id="L366">            numOfCustomerTotal--;</span>
+<span class="nc" id="L367">            CUSTOMER--;</span>
+<span class="nc" id="L368">            customersServed[0]++;</span>
+        }
+
+<span class="nc" id="L371">    }</span>
+
+    /**
+     * Calculates how many customers should arrive at once.
+     * Weighted so that customers arrive alone most of the time.
+     * 
+     * @return groupSize
+     */
+    private int getRandomCustomerGroupSize() {
+<span class="nc bnc" id="L380" title="All 2 branches missed.">        if (difficulty == Difficulty.SCENARIO) {</span>
+<span class="nc" id="L381">            return 1;</span>
+        }
+<span class="nc" id="L383">        double x = Math.random();</span>
+<span class="nc bnc" id="L384" title="All 2 branches missed.">        if (x &lt; 0.7) {</span>
+<span class="nc" id="L385">            return 1;</span>
+        }
+<span class="nc bnc" id="L387" title="All 4 branches missed.">        if (x &gt;= 0.7 &amp;&amp; x &lt; 0.9) {</span>
+<span class="nc" id="L388">            return 2;</span>
+        }
+<span class="nc bnc" id="L390" title="All 2 branches missed.">        if (x &gt;= 0.9) {</span>
+<span class="nc" id="L391">            return 3;</span>
+        }
+<span class="nc" id="L393">        return 1;</span>
+    }
+
+    /**
+     * Calculates the amount a customer will tip.
+     * Customers will tip a random amount up to the price of their dish and
+     * will do so 20% of the time.
+     * In scenario mode there are no tips.
+     * 
+     * @param dishPrice The price of the customer's meal which is used to determine
+     *                  their tip.
+     * @return The calculated tip.
+     */
+    private int getRandomCustomerTip(float dishPrice) {
+<span class="nc bnc" id="L407" title="All 2 branches missed.">        if (difficulty == Difficulty.SCENARIO) {</span>
+<span class="nc" id="L408">            return 0;</span>
+        }
+<span class="nc" id="L410">        double x = Math.random();</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">        if (x &gt; 0.8) {</span>
+<span class="nc" id="L412">            x = (1 + Math.random());</span>
+<span class="nc" id="L413">            return Math.round((float) dishPrice * (float) x);</span>
+        }
+<span class="nc" id="L415">        return 0;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
